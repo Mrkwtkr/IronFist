@@ -1,0 +1,17 @@
+[
+{
+  "modid": "ironfist",
+  "name": "Iron Fist",
+  "description": "It's fisting time! Now you can use your fist to smash things like a man!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "logoFile": "",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["machir"],
+  "credits": "Cromy(idea), Proger_cbsk(math)",
+  "parent": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
