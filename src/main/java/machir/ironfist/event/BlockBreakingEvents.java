@@ -1,6 +1,8 @@
 package machir.ironfist.event;
 
+import machir.ironfist.IronFist;
 import machir.ironfist.IronFistConstants;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemTool;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,6 +13,8 @@ import net.minecraftforge.event.world.BlockEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockBreakingEvents {
+	// The average milliseconds between two 1f hardness blocks at lvl 0
+	private static final int millisecondsHardnessOne = 11000;
 	private EntityPlayer entityPlayer = null;
 	private NBTTagCompound entityData = null;
 	private int fistLevel = 1;
@@ -18,7 +22,7 @@ public class BlockBreakingEvents {
 	private double obtainedXP = 0.0D;
 	
 	private double fatigue = 0.0D;
-	private long cumulativeWork = 0L;
+	private float cumulativeWork = 0f;
 	
 	@SubscribeEvent
 	public void onBlockBreak(BlockEvent.BreakEvent event) {
@@ -35,15 +39,20 @@ public class BlockBreakingEvents {
 		}
 		
 		loadIronFistData();
-		calculateFatigue();
+		
+		float hardness = event.block.getBlockHardness(event.world, event.x, event.y, event.z);
+		calculateFatigue(hardness);
 
-		if (fatigue > 1) {
+		IronFist.log.info("Fatigue: " + fatigue);
+		IronFist.log.info("Level: " + fistLevel);
+		IronFist.log.info("Experience: " + fistXP);
+		if (fatigue < 0.2) {
 			if (entityPlayer.attackEntityFrom(new DamageSource("fist").setDamageBypassesArmor().setDamageIsAbsolute(), 2f) && !entityPlayer.isDead) {
 				entityPlayer.addChatMessage(new ChatComponentText("You're bleeding, take a break or use tools!"));
 			}
 		}
 		
-		calculateXP(event.block.getBlockHardness(event.world, event.x, event.y, event.z));
+		calculateXP(hardness);
 		
 		// Stop when no experience is to be obtained
 		if (obtainedXP == 0) {
@@ -77,24 +86,34 @@ public class BlockBreakingEvents {
 			fatigue = entityData.getDouble(IronFistConstants.ModPrefix + "fatigue");
 		}
 		
-		if (entityData.hasKey("IronFist:cumulativeWork")) {
-		    cumulativeWork = entityData.getLong("IronFist:cumulativeWork");
+		if (entityData.hasKey(IronFistConstants.ModPrefix + "cumulativeWork")) {
+		    cumulativeWork = entityData.getFloat(IronFistConstants.ModPrefix + "cumulativeWork");
 		}
 	}
 	
-	private void calculateFatigue() {
+	private void calculateFatigue(float blockHardness) {
+		float recoveryTime = 30000 * fistLevel;
+		
 		long currentMillis = System.currentTimeMillis();
 		long lastMillis = entityData.getLong(IronFistConstants.ModPrefix + "lastBreakMillis");
 		
-		float deltaMinutes = (currentMillis - lastMillis) / 60000.0f;
-		float delta = Math.min(deltaMinutes, fistLevel);
+		long deltaMillis = (currentMillis - lastMillis);
+		long delta = Math.round(Math.min(recoveryTime, deltaMillis));
 		
-		if (delta != fistLevel) {
-		    cumulativeWork += deltaMinutes < 0.5 ? deltaMinutes : 0;
+		IronFist.log.info("DeltaMillis: " + deltaMillis);
+		
+		float workTime = millisecondsHardnessOne * blockHardness;
+		float restTime = delta - workTime;
+		
+		cumulativeWork = 0;
+		if (delta == recoveryTime) {
+			cumulativeWork = 0;
+		} else {
+			cumulativeWork = Math.min(Math.max(0, workTime - restTime + cumulativeWork), recoveryTime);
 		}
 		
-		double log = Math.log(cumulativeWork);
-		fatigue = Math.min((1 / log == -0.0 ? 1 : 1 / log), 1);
+		fatigue = (recoveryTime - cumulativeWork) / recoveryTime;
+		
 		
 		entityData.setLong(IronFistConstants.ModPrefix + "lastBreakMillis", currentMillis);
 	}
@@ -106,11 +125,11 @@ public class BlockBreakingEvents {
 	private void storeIronFistData() {
 		entityData.setDouble(IronFistConstants.ModPrefix + "fistXP", fistXP);
 		entityData.setDouble(IronFistConstants.ModPrefix + "fatigue", fatigue);
-		entityData.setLong(IronFistConstants.ModPrefix + "cumulativeWork",  cumulativeWork);
+		entityData.setFloat(IronFistConstants.ModPrefix + "cumulativeWork",  cumulativeWork);
 	}
 	
 	private double getLevelUpXP() {
-		return Math.pow(fistLevel, 1/5);
+		return 6.95997 * Math.pow(Math.E, (1.97241 * fistLevel));
 	}
 	
 	/**
@@ -125,7 +144,7 @@ public class BlockBreakingEvents {
 	
 	@SubscribeEvent
 	public void getBreakSpeed(PlayerEvent.BreakSpeed event) {
-		if (event.entityPlayer == null) {
+		if (event.entityPlayer == null || event.entityPlayer.getCurrentEquippedItem() != null) {
 			return;
 		}
 		
@@ -135,11 +154,10 @@ public class BlockBreakingEvents {
 		}
 		
 		// If a tool is required and the required level is reached or if no tool is required update the speed
-		if ((!event.block.getMaterial().isToolNotRequired()
-				&& event.block.getHarvestLevel(event.metadata) - (fistLevel / 10) <= 0)
+		if ((!event.block.getMaterial().isToolNotRequired() 
+				&& event.block.getHarvestLevel(event.metadata) - (fistLevel - 1) <= 0)
 				|| (event.block.getMaterial().isToolNotRequired())) {
-				// Calculate the fist breaking speed by dividing the level by 10 and adding 1 for default speed
-				event.newSpeed = (fistLevel / 10) + 1f;
+				event.newSpeed = Math.max(((fistLevel - 1) * 2), 1f);
 				
 		}
 	}
@@ -157,10 +175,18 @@ public class BlockBreakingEvents {
 		
 		// If a tool is required and the required level is reached the block may be harvested
 		// Use metadata 0 to get harvest level because I can't seem to find a way to get it
-		if ((!event.block.getMaterial().isToolNotRequired()
-				&& event.block.getHarvestLevel(0) - (fistLevel / 10) <= 0)) {
+		if (!event.block.getMaterial().isToolNotRequired()) {
+			int harvestLevel = event.block.getHarvestLevel(0);
+			
+			// If the harvest lvl is 0 check by material else check if lvl is reached
+			if (harvestLevel == 0 && canBreakMaterial(fistLevel, event.block.getMaterial())
+			|| (harvestLevel != 0 && harvestLevel - (fistLevel - 1) <= 0)) {
 				event.success = true;
-				
+			}
 		}
+	}
+	
+	private boolean canBreakMaterial(int level, Material material) {
+		return (material == Material.rock || material == Material.iron || material == Material.anvil) ? level > 1 : true;
 	}
 }
