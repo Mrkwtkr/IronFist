@@ -15,6 +15,8 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = "ironfist", name = "Iron Fist")
 public class IronFist {
+	public static final String ModPrefix = "IronFist:";
+	
     @Instance("ironfist")
     public static IronFist instance;
 
@@ -30,6 +32,7 @@ public class IronFist {
 
     @EventHandler
     public void init(FMLInitializationEvent evt) {
+    	// Register the block breaking handler 
         FMLCommonHandler.instance().bus().register(new BlockBreakingEvents());
         MinecraftForge.EVENT_BUS.register(new BlockBreakingEvents());
     }
