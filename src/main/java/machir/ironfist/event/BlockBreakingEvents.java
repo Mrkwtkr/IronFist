@@ -14,7 +14,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class BlockBreakingEvents {
 	// The average milliseconds between two 1f hardness blocks at lvl 0
-	private static final int millisecondsHardnessOne = 11000;
+	private static final int millisecondsHardnessOne = 2000;
 	private EntityPlayer entityPlayer = null;
 	private NBTTagCompound entityData = null;
 	private int fistLevel = 1;
@@ -105,7 +105,10 @@ public class BlockBreakingEvents {
 		float workTime = millisecondsHardnessOne * blockHardness;
 		float restTime = delta - workTime;
 		
-		cumulativeWork = 0;
+		IronFist.log.info("workTime: " + workTime);
+		IronFist.log.info("restTime: " + restTime);
+		
+		//cumulativeWork = 0;
 		if (delta == recoveryTime) {
 			cumulativeWork = 0;
 		} else {
