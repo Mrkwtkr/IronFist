@@ -1,5 +1,6 @@
 package machir.ironfist;
 
+import machir.ironfist.command.CommandIronFist;
 import machir.ironfist.event.BlockBreakingEvents;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -12,6 +13,7 @@ import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 @Mod(modid = "ironfist", name = "Iron Fist")
 public class IronFist {
@@ -35,5 +37,10 @@ public class IronFist {
     	// Register the block breaking handler 
         FMLCommonHandler.instance().bus().register(new BlockBreakingEvents());
         MinecraftForge.EVENT_BUS.register(new BlockBreakingEvents());
+    }
+    
+    @EventHandler
+    public void serverStartup(FMLServerStartingEvent evt) {
+    	evt.registerServerCommand(new CommandIronFist());
     }
 }
