@@ -2,6 +2,7 @@ package machir.ironfist;
 
 import machir.ironfist.command.CommandIronFist;
 import machir.ironfist.event.BlockBreakingEvents;
+import machir.ironfist.event.PlayerEvents;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.logging.log4j.Logger;
@@ -15,32 +16,59 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = "ironfist", name = "Iron Fist")
+@Mod(modid = "ironfist", name = "Iron Fist", acceptableRemoteVersions = "*")
 public class IronFist {
 	public static final String ModPrefix = "IronFist:";
-	
-    @Instance("ironfist")
-    public static IronFist instance;
 
-    @SidedProxy(clientSide = "machir.ironfist.client.ClientProxy", serverSide = "machir.ironfist.CommonProxy")
-    public static CommonProxy proxy;
+	@Instance("ironfist")
+	public static IronFist instance;
 
-    public static Logger log;
+	@SidedProxy(clientSide = "machir.ironfist.client.ClientProxy", serverSide = "machir.ironfist.CommonProxy")
+	public static CommonProxy proxy;
 
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent evt) {
-        log = evt.getModLog();
-    }
+	public static Logger log;
 
-    @EventHandler
-    public void init(FMLInitializationEvent evt) {
-    	// Register the block breaking handler 
-        FMLCommonHandler.instance().bus().register(new BlockBreakingEvents());
-        MinecraftForge.EVENT_BUS.register(new BlockBreakingEvents());
-    }
-    
-    @EventHandler
-    public void serverStartup(FMLServerStartingEvent evt) {
-    	evt.registerServerCommand(new CommandIronFist());
-    }
+	/**
+	 * Handles the pre-initialization event of the mod
+	 * 
+	 * @param evt
+	 *            The pre-initialization event object
+	 */
+	@EventHandler
+	public void preInit(FMLPreInitializationEvent evt) {
+		// Initialize the mod log
+		log = evt.getModLog();
+	}
+
+	/**
+	 * Handles the initialization event of the mod
+	 * 
+	 * @param evt
+	 *            The initialization event object
+	 */
+	@EventHandler
+	public void init(FMLInitializationEvent evt) {
+		// Register the block breaking handler
+		FMLCommonHandler.instance().bus().register(new BlockBreakingEvents());
+		MinecraftForge.EVENT_BUS.register(new BlockBreakingEvents());
+		
+		// Register the player handler
+		FMLCommonHandler.instance().bus().register(new PlayerEvents());
+		MinecraftForge.EVENT_BUS.register(new PlayerEvents());
+	}
+
+	/**
+	 * Handles the server start up event of the mod
+	 * 
+	 * @param evt
+	 *            The server start up event object
+	 */
+	@EventHandler
+	public void serverStartup(FMLServerStartingEvent evt) {
+		// Register the mod command which includes every command
+		
+		// TODO Check if there is a cleaner way of accomplishing /fist <command>
+		//      than using one command
+		evt.registerServerCommand(new CommandIronFist());
+	}
 }
