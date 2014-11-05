@@ -123,8 +123,15 @@ public class BlockBreakingEvents {
 	 */
 	@SubscribeEvent
 	public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-		if (event.entity.worldObj.isRemote || event.entityPlayer == null
-				|| event.entityPlayer.getCurrentEquippedItem() != null) {
+		if (event.entityPlayer == null) {
+			return;
+		}
+		
+		EntityPlayer entityPlayer = event.entityPlayer;
+		
+		// Skip the check if the current item is a tool
+		if (entityPlayer.getCurrentEquippedItem() != null
+				&& entityPlayer.getCurrentEquippedItem().getItem() instanceof ItemTool) {
 			return;
 		}
 
@@ -152,7 +159,7 @@ public class BlockBreakingEvents {
 	 */
 	@SubscribeEvent
 	public void canHarvestBlock(PlayerEvent.HarvestCheck event) {
-		if (event.entity.worldObj.isRemote || event.entityPlayer == null) {
+		if (event.entityPlayer == null) {
 			return;
 		}
 

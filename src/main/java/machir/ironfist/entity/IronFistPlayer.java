@@ -1,8 +1,11 @@
 package machir.ironfist.entity;
 
 import machir.ironfist.IronFist;
+import machir.ironfist.network.PacketHandler;
+import machir.ironfist.network.messages.MessageFistLevelSync;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
@@ -96,7 +99,7 @@ public class IronFistPlayer implements IExtendedEntityProperties {
 		this.cumulativeWork = properties.getFloat("cumulativeWork");
 		this.lastBreakMillis = properties.getLong("lastBreakMillis");
 
-		IronFist.log.info("Loaded extended player properties");
+		this.sync();
 	}
 
 	/**
@@ -114,6 +117,20 @@ public class IronFistPlayer implements IExtendedEntityProperties {
 	@Override
 	public void init(Entity entity, World world) {
 
+	}
+
+	/**
+	 * Synchronizes the level between server and client as only the level makes
+	 * a difference client side
+	 */
+	public void sync() {
+		if (this.isServerSide()) {
+			if (this.player instanceof EntityPlayerMP) {
+				PacketHandler.instance.sendTo(new MessageFistLevelSync(
+						this.player.getEntityId(), this.getFistLevel()),
+						(EntityPlayerMP) this.player);
+			}
+		}
 	}
 
 	/**
@@ -143,6 +160,7 @@ public class IronFistPlayer implements IExtendedEntityProperties {
 	 */
 	public void setFistLevel(int fistLevel) {
 		this.fistLevel = fistLevel;
+		this.sync();
 	}
 
 	/**
@@ -212,5 +230,15 @@ public class IronFistPlayer implements IExtendedEntityProperties {
 	 */
 	public void setLastBreakMillis(long lastBreakMillis) {
 		this.lastBreakMillis = lastBreakMillis;
+	}
+
+	/**
+	 * Simple method to check if the extended properties are server side Not
+	 * sure if it'll work properly though..
+	 * 
+	 * @return Are the properties server side?
+	 */
+	public boolean isServerSide() {
+		return this.player != null ? !this.player.worldObj.isRemote : false;
 	}
 }

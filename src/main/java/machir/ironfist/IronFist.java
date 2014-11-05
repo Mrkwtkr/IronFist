@@ -3,6 +3,7 @@ package machir.ironfist;
 import machir.ironfist.command.CommandIronFist;
 import machir.ironfist.event.BlockBreakingEvents;
 import machir.ironfist.event.PlayerEvents;
+import machir.ironfist.network.PacketHandler;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.logging.log4j.Logger;
@@ -16,7 +17,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = "ironfist", name = "Iron Fist", acceptableRemoteVersions = "*")
+@Mod(modid = "IronFist", name = "Iron Fist")
 public class IronFist {
 	public static final String ModPrefix = "IronFist:";
 
@@ -55,6 +56,8 @@ public class IronFist {
 		// Register the player handler
 		FMLCommonHandler.instance().bus().register(new PlayerEvents());
 		MinecraftForge.EVENT_BUS.register(new PlayerEvents());
+		
+		PacketHandler.init();
 	}
 
 	/**
