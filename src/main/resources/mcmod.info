@@ -5,11 +5,11 @@
   "description": "It's fisting time! Now you can use your fist to smash things like a man!",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "logoFile": "",
+  "logoFile": "assets/ironfist/logo.png",
   "url": "",
   "updateUrl": "",
   "authorList": ["Machir", "Proger_cbsk"],
-  "credits": "Cromy",
+  "credits": "Cromy, Sk89q",
   "parent": "",
   "screenshots": [],
   "dependencies": []
