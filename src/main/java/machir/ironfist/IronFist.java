@@ -17,7 +17,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = "IronFist", name = "Iron Fist")
+@Mod(modid = "IronFist")
 public class IronFist {
 	public static final String ModPrefix = "IronFist:";
 
