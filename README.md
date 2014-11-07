@@ -23,3 +23,5 @@ However this strength comes at a risk. Don't overdo it or you may get serious in
 ### Credits ###
 
 - **Cromy** - Idea Machine
+
+- **Sk89q** - Logo
