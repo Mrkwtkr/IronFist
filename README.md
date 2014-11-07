@@ -20,4 +20,6 @@ However this strength comes at a risk. Don't overdo it or you may get serious in
 
 - **Proger_cbsk** - Mathematical brain
 
+### Credits ###
+
 - **Cromy** - Idea Machine
